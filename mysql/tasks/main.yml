@@ -8,6 +8,8 @@
       name: 
         - https://repo.percona.com/yum/percona-release-latest.noarch.rpm
       state: present
+  - debug:
+      msg: "{{  inventory_hostname  }}"
 
   - name: Install Percona
     yum:
