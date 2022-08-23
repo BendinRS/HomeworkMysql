@@ -1,0 +1,14 @@
+[mysqld]
+pid-file=/var/run/mysqld/mysqld.pid
+log-error=/var/log/mysqld.log
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+symbolic-links=0
+
+{% if {{  inventory_hostname  }} == 'master' %}
+server-id = 1
+{% else %}
+server-id = 2
+{% endif %}
+innodb_file_per_table = 1
+skip-name-resolve

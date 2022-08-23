@@ -1,2 +1,49 @@
 ---
-# tasks file for mysql
+  - name: update yum caсhe
+    yum:
+      update_cache: true
+
+  - name: Add Percona yum repository
+    yum:
+      name: 
+        - https://repo.percona.com/yum/percona-release-latest.noarch.rpm
+      state: present
+
+  - name: Install Percona
+    yum:
+      name: 
+        - Percona-Server-server-57
+      state: present
+
+  - name: copy dmp
+    copy: 
+      src: bet.dmp
+      dest: /home/bet.dmp
+
+  - name: copy conf
+    copy: 
+      src: ./files/
+      dest: /etc/my.cnf.d/
+  
+  - name: copy 01-base.cnf
+    template:
+      src: 01-base.cnf.j2
+      dest: /etc/my.cnf.d/01-base.cnf
+
+  - name: Start a service mysql
+    systemd:
+      name: mysql
+      state: started
+      enabled: yes
+
+  - name: pass step_1 save
+    shell: cat /var/log/mysqld.log | grep 'root@localhost:' | awk '{print $11}' > /home/pass
+
+  - name: Start a service mysql
+    systemd:
+      name: mysql
+      state: started
+      enabled: yes
+
+  - name: pass step_1 save
+    shell: cat /var/log/mysqld.log | grep 'root@localhost:' | awk '{print $11}' > /home/pass
