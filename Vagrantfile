@@ -34,6 +34,8 @@ Vagrant.configure("2") do |config|
 
           box.vm.provision :shell do |s|
              s.inline = 'mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh'
+             config.vm.provision "ansible" do |ansible|
+             ansible.playbook = "./run.yml"
           end
 
       end
