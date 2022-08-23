@@ -1,69 +1,45 @@
 # -*- mode: ruby -*-
-# vim: set ft=ruby :
-home = ENV['HOME']
-ENV["LC_ALL"] = "en_US.UTF-8"
-
-MACHINES = {
-  :master => {
-        :box_name => "centos/7",
-        :ip_addr => '192.168.11.160',
-    :disks => {
-        :sata1 => {
-            :dfile => home + '/VirtualBox VMs/sata1.vdi',
-            :size => 1048,
-            :port => 1
-        }
-    }
-  },
-  :slave => {
-        :box_name => "centos/7",
-        :ip_addr => '192.168.11.150',
-    :disks => {
-        :sata2 => {
-            :dfile => home + '/VirtualBox VMs/sata2.vdi',
-            :size => 128,
-            :port => 2
-        }
-    }
-  },
-}
+# vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
+  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=700,fmode=600"]
+  config.vm.synced_folder "./config", "/vagrant/config", mount_options: ["dmode=755,fmode=755"]
+  
+  # run slave first
+  config.vm.define "mysqlslave" do |mysqlslave|
+    mysqlslave.vm.box = "ubuntu/precise64"
+    mysqlslave.vm.hostname = 'mysqlslave'
+    mysqlslave.vm.synced_folder "./data/slave", "/var/lib/mysql_vagrant" , id: "mysql",
+    owner: 108, group: 113,  # owner: "mysql", group: "mysql",
+    mount_options: ["dmode=775,fmode=664"]
 
-    MACHINES.each do |boxname, boxconfig|
-  
-        config.vm.define boxname do |box|
-  
-            box.vm.box = boxconfig[:box_name]
-            box.vm.host_name = boxname.to_s
-  
-            #box.vm.network "forwarded_port", guest: 3260, host: 3260+offset
-  
-            box.vm.network "private_network", ip: boxconfig[:ip_addr]
-  
-            box.vm.provider :virtualbox do |vb|
-                    vb.customize ["modifyvm", :id, "--memory", "256"]
-                    needsController = false
-            boxconfig[:disks].each do |dname, dconf|
-                unless File.exist?(dconf[:dfile])
-                  vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
-                                  needsController =  true
-                            end
-  
-            end
-                    if needsController == true
-                       vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
-                       boxconfig[:disks].each do |dname, dconf|
-                           vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
-                       end
-                    end
-            end
-            # config.vm.provision "ansible" do |ansible|
-            # ansible.playbook = "./run.yml"
-            # ansible.limit = "all"
-        
-        
-            # end
-        end
+    mysqlslave.vm.network :private_network, ip: "192.168.100.12"
+
+    mysqlslave.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "mysqlslave"]
     end
+
+    mysqlslave.vm.provision :shell, path: "bootstrap-slave.sh"
   end
+
+  config.vm.define "mysqlmaster" do |mysqlmaster|
+    mysqlmaster.vm.box = "ubuntu/precise64"
+    mysqlmaster.vm.hostname = 'mysqlmaster'
+    mysqlmaster.vm.synced_folder "./data/master", "/var/lib/mysql_vagrant" , id: "mysql",
+    owner: 108, group: 113,  # owner: "mysql", group: "mysql",
+    mount_options: ["dmode=775,fmode=664"]
+
+    mysqlmaster.vm.network :private_network, ip: "192.168.100.11"
+
+    mysqlmaster.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "mysqlmaster"]      
+    end
+
+    mysqlmaster.vm.provision :shell, path: "bootstrap-master.sh"
+
+  end  
+end
