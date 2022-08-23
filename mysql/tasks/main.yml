@@ -37,7 +37,7 @@
       enabled: yes
 
   - name: pass step_1 save
-    shell: cat /var/log/mysqld.log | grep 'root@localhost:' | awk '{print $11}' > /home/pass
+    shell: cat /var/log/mysqld.log | grep 'root@localhost:' | awk '{print $11}' > ./password_mysql
 
   - name: Start a service mysql
     systemd:
