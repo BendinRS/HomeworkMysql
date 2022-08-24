@@ -50,7 +50,7 @@ x
 
 + Подключаемся к mysql и меняем пароль для доступа к полному функционалу:  
 
-![Alt text](/screenshots/slavetest.png?raw=true "full")
+![Alt text](/screenshots/password.png?raw=true "full")
 
 ## Репликация
 
@@ -81,9 +81,9 @@ mysql> SHOW VARIABLES LIKE 'gtid_mode';
 1 row in set (0.00 sec)
 
 ```
-+ Создадим тестовую базу bet и загрузим в нее дамп и проверим:
++ Создадим тестовую базу bet и загрузим в нее дамп и проверим наличие таблиц:
 
-Картинка базы
+![Alt text](/screenshots/bases.png?raw=true "check")
 
 + Создадим пользователя для репликации и даем ему права на эту самую репликацию:  
 
@@ -113,7 +113,7 @@ mysql> SELECT user,host FROM mysql.user where user='repl';
 
 + повторяем процедуры с подключением к mysql и проверкам
 
-Картинка слейвтест
+![Alt text](/screenshots/slave.png?raw=true "check")
 
 + Раскомментируем в /etc/my.cnf.d/05-binlog.cnf строки:  
 
@@ -124,10 +124,11 @@ mysql> SELECT user,host FROM mysql.user where user='repl';
 
 + Заливаем дамп мастера и убеждаемся что база есть и она без лишних таблиц:  
 
-картинка SHOW TABLES
+![Alt text](/screenshots/slavetestbd.png?raw=true "check")
 
 + Подключаем, запускаем и проверяем слейв:
-картинка itog
+
+![Alt text](/screenshots/slave_itog.png?raw=true "check")
 
 Слейв не запустился. При попытке подгрузить верный глобальный ид - ошибка
 
@@ -152,14 +153,24 @@ https://avdeo.com/tag/error-1840-hy000-global-gtid_purged-can-only-be-set-when/
 
 Единственный способ исправить это - использовать сброс мастера на ведомом устройстве. Что я и сделал.  
 
-+ Итог
+![Alt text](/screenshots/finish.png?raw=true "check")
 
-картинка итог
+## Скрины работы слейва
 
-работаслейв
++ Логи
+![Alt text](/screenshots/workslave.png?raw=true "check")
++ Мастер
+```
+mysql> USE bet;
+mysql> INSERT INTO bookmaker (id,bookmaker_name) VALUES(1,'1xbet');
+mysql> SELECT * FROM bookmaker;
 
-мастер11
-слейв22
+```
+![Alt text](/screenshots/master1.png?raw=true "check")
+
++ Слейв
+
+![Alt text](/screenshots/slave2.png?raw=true "check")
 
 
 
